@@ -63,6 +63,7 @@
                         else if (powersts=="preheat"){
                                 $("#start").text("Pull Shot/Purge");
                                 $("#start").removeClass("btn-success");
+				$("#Start").removeClass("btn-danger");
 				$("#start").removeClass("btn-warning");
                                 $("#start").addClass("btn-primary");
 				$("#steam").text("Stop");
@@ -73,6 +74,8 @@
 			else if (powersts=="shot"){
 				$("#start").text("Preheat");
 				$("#start").removeClass("btn-primary");
+				$("#start").removeClass("btn-danger");
+				$("#start").removeClass("btn-success");
 				$("#start").addClass("btn-warning");
 				$("#steam").text("Done");
 				$("#pwrsts").text("Pulling Shot");
