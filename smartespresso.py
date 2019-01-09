@@ -1,6 +1,3 @@
-'''
-	Raspberry Pi GPIO Status and Control
-'''
 import RPi.GPIO as GPIO
 import sys, time
 from flask import Flask, render_template, request, jsonify
@@ -24,10 +21,13 @@ GPIO.output(shotport, GPIO.HIGH)
 GPIO.output(steamport, GPIO.HIGH)
 #GPIO.output(ledport, GPIO.LOW)
 
+
+#serve index page
 @app.route("/")
 def index():
 	return render_template('index.html')
 
+#get current status
 @app.route("/powersts", methods=['GET'])
 def info():
 	preheatsts = str(GPIO.input(preheatport))
@@ -43,6 +43,7 @@ def info():
 	else:
 		return "off"
 
+#trigger preheat mode
 @app.route("/preheat", methods=['POST'])
 def action():
 	GPIO.output(preheatport, GPIO.LOW)
@@ -51,13 +52,27 @@ def action():
 #	GPIO.output(ledport, GPIO.HIGH)
 	return "0"
 
+#trigger pump
 @app.route("/shot", methods=['POST'])
 def action2():
 	GPIO.output(preheatport, GPIO.LOW)
 	GPIO.output(shotport, GPIO.LOW)
 	GPIO.output(steamport, GPIO.HIGH)
+#       GPIO.output(ledport, GPIO.HIGH)
+
+	#open pull count file and add pulls
+	with open("/root/espresso/pullcount.dat","r+") as orgf:
+		try:
+			currentcount=int(orgf.read())
+		except:
+			currentcount=0
+		finally:
+			orgf.seek(0)
+			orgf.write(str(currentcount+1))
+
 	return "0"
 
+#trigger steam mode
 @app.route("/steam", methods=['POST'])
 def action3():
         GPIO.output(preheatport, GPIO.LOW)
@@ -66,6 +81,7 @@ def action3():
 #	GPIO.output(ledport, GPIO.HIGH)
 	return "0"
 
+#turn off
 @app.route("/off", methods=['POST'])
 def action4():
 	GPIO.output(preheatport, GPIO.HIGH)
