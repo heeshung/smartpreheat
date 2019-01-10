@@ -36,7 +36,8 @@
         </div>
     </div>
     <div class="container-fluid">
-	<h5>Current Mode: <span id="pwrsts"></span><small><span id="shottime"></span></small></h5>
+	<h5>Current Mode: <span id="pwrsts"></span></h5>
+	<h5><small><span id="shottime"></span></small></h5>
     </div>
 
 
@@ -88,11 +89,17 @@
 				$("#pwrsts").text("Steaming");
 			}
                 }, 'html');
+
+		$.get("/secleft", function(secleft){
+			$("#shottime").text(secleft);
+		}, 'text');	
 	}
 	
 	$(function(){
 		checkstatus();
 	});
+
+	setInterval(checkstatus,500);
 
 	$('#start').click(function(){
 		$.get("/powersts", function(powersts){

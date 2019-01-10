@@ -1,5 +1,5 @@
 import RPi.GPIO as GPIO
-import sys, time
+import sys, time, threading
 from flask import Flask, render_template, request, jsonify
 
 app = Flask(__name__)
@@ -10,6 +10,10 @@ shotport=23
 steamport=24
 ledport=25
 
+shotseconds=25
+elapsed=0
+current_mode="off"
+requested_mode="off"
 
 # Set button and PIR sensor pins as an input
 GPIO.setup(preheatport, GPIO.OUT)
@@ -21,6 +25,48 @@ GPIO.output(shotport, GPIO.HIGH)
 GPIO.output(steamport, GPIO.HIGH)
 #GPIO.output(ledport, GPIO.LOW)
 
+
+@app.before_first_request
+def shottimer():
+	def run():
+		global current_mode
+		global requested_mode
+		global elapsed
+		while 1:
+			if (current_mode!=requested_mode):
+				if (requested_mode=="preheat"):
+				        GPIO.output(preheatport, GPIO.LOW)
+				        GPIO.output(shotport, GPIO.HIGH)
+				        GPIO.output(steamport, GPIO.HIGH)
+				#       GPIO.output(ledport, GPIO.HIGH)
+					current_mode=requested_mode
+				elif (requested_mode=="shot"):
+					elapsed=0
+				        GPIO.output(preheatport, GPIO.LOW)
+				        GPIO.output(shotport, GPIO.LOW)
+				        GPIO.output(steamport, GPIO.HIGH)
+				#       GPIO.output(ledport, GPIO.HIGH)
+					current_mode=requested_mode
+				elif (requested_mode=="steam"):
+				        GPIO.output(preheatport, GPIO.LOW)
+				        GPIO.output(shotport, GPIO.HIGH)
+				        GPIO.output(steamport, GPIO.LOW)
+				#       GPIO.output(ledport, GPIO.HIGH)
+					current_mode=requested_mode
+				else:
+				        GPIO.output(preheatport, GPIO.HIGH)
+				        GPIO.output(shotport, GPIO.HIGH)
+				        GPIO.output(steamport, GPIO.HIGH)
+				#       GPIO.output(ledport, GPIO.LOW)
+					current_mode="off"
+			time.sleep(.25)
+			if (current_mode=="shot"):
+				elapsed+=.25
+			if (elapsed>shotseconds):
+				requested_mode="off"
+				elapsed=0
+	thread=threading.Thread(target=run)
+	thread.start()
 
 #serve index page
 @app.route("/")
@@ -43,23 +89,26 @@ def info():
 	else:
 		return "off"
 
+#get seconds left
+@app.route("/secleft", methods=['GET'])
+def info2():
+	if (current_mode=="shot"):
+		return str(int(shotseconds-elapsed))+" sec left"
+	else:
+		return ""
+
 #trigger preheat mode
 @app.route("/preheat", methods=['POST'])
 def action():
-	GPIO.output(preheatport, GPIO.LOW)
-	GPIO.output(shotport, GPIO.HIGH)
-	GPIO.output(steamport, GPIO.HIGH)
-#	GPIO.output(ledport, GPIO.HIGH)
+	global requested_mode
+	requested_mode="preheat"
 	return "0"
 
 #trigger pump
 @app.route("/shot", methods=['POST'])
 def action2():
-	GPIO.output(preheatport, GPIO.LOW)
-	GPIO.output(shotport, GPIO.LOW)
-	GPIO.output(steamport, GPIO.HIGH)
-#       GPIO.output(ledport, GPIO.HIGH)
-
+	global requested_mode
+	requested_mode="shot"
 	#open pull count file and add pulls
 	with open("/root/espresso/pullcount.dat","r+") as orgf:
 		try:
@@ -75,21 +124,17 @@ def action2():
 #trigger steam mode
 @app.route("/steam", methods=['POST'])
 def action3():
-        GPIO.output(preheatport, GPIO.LOW)
-        GPIO.output(shotport, GPIO.HIGH)
-        GPIO.output(steamport, GPIO.LOW)
-#	GPIO.output(ledport, GPIO.HIGH)
+	global requested_mode
+	requested_mode="steam"
 	return "0"
 
 #turn off
 @app.route("/off", methods=['POST'])
 def action4():
-	GPIO.output(preheatport, GPIO.HIGH)
-	GPIO.output(shotport, GPIO.HIGH)
-	GPIO.output(steamport, GPIO.HIGH)
-#	GPIO.output(ledport, GPIO.LOW)
+	global requested_mode
+	requested_mode="off"
 	return "0"
 
 if __name__ == "__main__":
-	app.run(host='0.0.0.0', port=80, debug=False)
+	app.run(host='0.0.0.0', port=80, debug=False, threaded=True)
     
