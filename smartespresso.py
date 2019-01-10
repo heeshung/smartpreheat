@@ -64,6 +64,7 @@ def shottimer():
 				elapsed+=.25
 			if (elapsed>shotseconds):
 				requested_mode="preheat"
+				elapsed=0
 	thread=threading.Thread(target=run)
 	thread.start()
 
@@ -107,8 +108,8 @@ def action():
 @app.route("/shot/<useshottimer>", methods=['POST'])
 def action2(useshottimer):
 	global requested_mode
-	global elapsed
 	global usetimer
+	global elapsed
 	if (useshottimer=="false"):
 		usetimer=False
 	else:
