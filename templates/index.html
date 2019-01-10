@@ -36,6 +36,8 @@
         </div>
     </div>
     <div class="container-fluid">
+	<!--<input id="ex7" type="text" data-slider-min="20" data-slider-max="30" data-slider-step="1" data-slider-value="25" data-slider-enabled="true"/>-->
+	<input id="ex7-enabled" type="checkbox"/> Use Shot Timer
 	<h5>Current Mode: <span id="pwrsts"></span></h5>
 	<h5><small><span id="shottime"></span></small></h5>
     </div>
@@ -101,6 +103,15 @@
 
 	setInterval(checkstatus,500);
 
+	//$('#ex7-enabled').click(function(){
+	//	if (this.checked){
+	//		$("#ex7").slider("enable");
+	//	}
+	//	else{
+	//		$("#ex7").slider("disable");
+	//	}
+	//});
+
 	$('#start').click(function(){
 		$.get("/powersts", function(powersts){
 			if (powersts=="off"){
@@ -110,7 +121,13 @@
 				})
 			}
 			else if (powersts=="preheat"){
-				$.post("/shot");
+				//var val=$("#ex7").slider();
+				if ($('#ex7-enabled').prop('checked')==true){
+					$.post("/shot/true");
+				}
+				else{
+					$.post("/shot/false");
+				}
 				sleep(500).then(() => {
                                         checkstatus();
                                 })

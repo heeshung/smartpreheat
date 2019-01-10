@@ -10,10 +10,11 @@ shotport=23
 steamport=24
 ledport=25
 
-shotseconds=25
+shotseconds=5
 elapsed=0
 current_mode="off"
 requested_mode="off"
+usetimer=True
 
 # Set button and PIR sensor pins as an input
 GPIO.setup(preheatport, GPIO.OUT)
@@ -41,7 +42,6 @@ def shottimer():
 				#       GPIO.output(ledport, GPIO.HIGH)
 					current_mode=requested_mode
 				elif (requested_mode=="shot"):
-					elapsed=0
 				        GPIO.output(preheatport, GPIO.LOW)
 				        GPIO.output(shotport, GPIO.LOW)
 				        GPIO.output(steamport, GPIO.HIGH)
@@ -60,11 +60,10 @@ def shottimer():
 				#       GPIO.output(ledport, GPIO.LOW)
 					current_mode="off"
 			time.sleep(.25)
-			if (current_mode=="shot"):
+			if (current_mode=="shot" and usetimer==True):
 				elapsed+=.25
 			if (elapsed>shotseconds):
-				requested_mode="off"
-				elapsed=0
+				requested_mode="preheat"
 	thread=threading.Thread(target=run)
 	thread.start()
 
@@ -92,7 +91,7 @@ def info():
 #get seconds left
 @app.route("/secleft", methods=['GET'])
 def info2():
-	if (current_mode=="shot"):
+	if (current_mode=="shot" and usetimer==True):
 		return str(int(shotseconds-elapsed))+" sec left"
 	else:
 		return ""
@@ -105,9 +104,16 @@ def action():
 	return "0"
 
 #trigger pump
-@app.route("/shot", methods=['POST'])
-def action2():
+@app.route("/shot/<useshottimer>", methods=['POST'])
+def action2(useshottimer):
 	global requested_mode
+	global elapsed
+	global usetimer
+	if (useshottimer=="false"):
+		usetimer=False
+	else:
+		usetimer=True
+	elapsed=0
 	requested_mode="shot"
 	#open pull count file and add pulls
 	with open("/root/espresso/pullcount.dat","r+") as orgf:
