@@ -36,10 +36,17 @@
         </div>
     </div>
     <div class="container-fluid">
+	<div style="margin-top:25px"></div>
 	<!--<input id="ex7" type="text" data-slider-min="20" data-slider-max="30" data-slider-step="1" data-slider-value="25" data-slider-enabled="true"/>-->
-	<input id="ex7-enabled" type="checkbox"/> Use Shot Timer
-	<h5>Current Mode: <span id="pwrsts"></span></h5>
-	<h5><small><span id="shottime"></span></small></h5>
+	<!--<input id="ex7-enabled" type="checkbox"/> Use Shot Timer-->
+	<div class="form-check">
+	<input class="form-check-input" type="checkbox" value="" id="ex7-enabled">
+	<label class="form-check-label" for="defaultCheck1">
+	  Use Shot Timer
+	</label>
+	</div>
+	<div style="margin-top:15px"></div>
+	<h5>Current Mode: <span id="pwrsts"></span><small><span id="shottime" style="padding-left:10px"></span></small></h5>
     </div>
 
 
