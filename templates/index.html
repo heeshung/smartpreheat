@@ -8,10 +8,8 @@
     <title>SmartEspresso by Mark</title>
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
     
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
@@ -39,11 +37,10 @@
 	<div style="margin-top:25px"></div>
 	<!--<input id="ex7" type="text" data-slider-min="20" data-slider-max="30" data-slider-step="1" data-slider-value="25" data-slider-enabled="true"/>-->
 	<!--<input id="ex7-enabled" type="checkbox"/> Use Shot Timer-->
-	<div class="form-check">
-	<input class="form-check-input" type="checkbox" value="" id="ex7-enabled">
-	<label class="form-check-label" for="defaultCheck1">
-	  Use Shot Timer
-	</label>
+	<div class="btn-group-toggle" data-toggle="buttons" id="togglearea">
+          <label class="btn btn-info active" id="togglelabel">
+	    <input type="checkbox" checked autocomplete="off" id="ex7-enabled"> Use Shot Timer
+	  </label>
 	</div>
 	<div style="margin-top:15px"></div>
 	<h5>Current Mode: <span id="pwrsts"></span><small><span id="shottime" style="padding-left:10px"></span></small></h5>
@@ -118,6 +115,17 @@
 	//		$("#ex7").slider("disable");
 	//	}
 	//});
+
+	$('#togglelabel').click(function(){
+		if ($("#togglelabel").hasClass("btn-info")){
+			$("#togglelabel").removeClass("btn-info");
+			$("#togglelabel").addClass("btn-secondary");
+		}
+		else{
+			$("#togglelabel").removeClass("btn-secondary");
+                        $("#togglelabel").addClass("btn-info");
+		}
+	});
 
 	$('#start').click(function(){
 		$.get("/powersts", function(powersts){
