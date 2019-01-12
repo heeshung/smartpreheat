@@ -10,7 +10,7 @@ shotport=23
 steamport=24
 ledport=25
 
-shotseconds=28
+shotseconds=30
 elapsed=0
 current_mode="off"
 requested_mode="off"
