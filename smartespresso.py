@@ -9,6 +9,7 @@ preheatport = 18
 shotport=23
 steamport=24
 ledport=25
+switchport=17
 
 shotseconds=27
 elapsed=0
@@ -20,11 +21,13 @@ usetimer=True
 GPIO.setup(preheatport, GPIO.OUT)
 GPIO.setup(shotport, GPIO.OUT)
 GPIO.setup(steamport, GPIO.OUT)
-#GPIO.setup(ledport, GPIO.OUT)
+GPIO.setup(ledport, GPIO.OUT)
+GPIO.setup(switchport, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
 GPIO.output(preheatport, GPIO.HIGH)
 GPIO.output(shotport, GPIO.HIGH)
 GPIO.output(steamport, GPIO.HIGH)
-#GPIO.output(ledport, GPIO.LOW)
+GPIO.output(ledport, GPIO.LOW)
 
 
 @app.before_first_request
@@ -39,25 +42,33 @@ def shottimer():
 				        GPIO.output(preheatport, GPIO.LOW)
 				        GPIO.output(shotport, GPIO.HIGH)
 				        GPIO.output(steamport, GPIO.HIGH)
-				#       GPIO.output(ledport, GPIO.HIGH)
 					current_mode=requested_mode
 				elif (requested_mode=="shot"):
-				        GPIO.output(preheatport, GPIO.LOW)
+					#reset timer
+				        elapsed=0
+					GPIO.output(preheatport, GPIO.LOW)
 				        GPIO.output(shotport, GPIO.LOW)
 				        GPIO.output(steamport, GPIO.HIGH)
-				#       GPIO.output(ledport, GPIO.HIGH)
 					current_mode=requested_mode
+					#open pull count file and add pulls
+					with open("/root/espresso/pullcount.dat","r+") as orgf:
+						try:
+							currentcount=int(orgf.read())
+						except:
+							currentcount=0
+						finally:
+							orgf.seek(0)
+							orgf.write(str(currentcount+1))
+
 				elif (requested_mode=="steam"):
 				        GPIO.output(preheatport, GPIO.LOW)
 				        GPIO.output(shotport, GPIO.HIGH)
 				        GPIO.output(steamport, GPIO.LOW)
-				#       GPIO.output(ledport, GPIO.HIGH)
 					current_mode=requested_mode
 				else:
 				        GPIO.output(preheatport, GPIO.HIGH)
 				        GPIO.output(shotport, GPIO.HIGH)
 				        GPIO.output(steamport, GPIO.HIGH)
-				#       GPIO.output(ledport, GPIO.LOW)
 					current_mode="off"
 			time.sleep(.25)
 			if (current_mode=="shot" and usetimer==True):
@@ -67,7 +78,49 @@ def shottimer():
 				elapsed=0
 	thread=threading.Thread(target=run)
 	thread.start()
-
+	def switch():
+		global requested_mode
+		while 1:
+			input_state=GPIO.input(switchport)
+			if input_state==False:
+				if (current_mode=="preheat"):
+					time.sleep(.5)
+					requested_mode="shot"
+					#check if long press
+					int_state=GPIO.input(switchport)
+					if int_state==False:
+						requested_mode="off"
+						time.sleep(1)
+				elif (current_mode=="shot"):
+					requested_mode="preheat"
+					time.sleep(2)
+				elif (current_mode=="off"):
+					requested_mode="preheat"
+					time.sleep(2)
+				else:
+					requested_mode="off"
+					time.sleep(2)
+	thread=threading.Thread(target=switch)
+	thread.start()
+#flash led
+	def ledblink():
+		while 1:
+			if (current_mode=="preheat"):
+				GPIO.output(ledport, GPIO.HIGH)
+			elif (current_mode=="shot"):
+				GPIO.output(ledport, GPIO.LOW)
+				time.sleep(1)
+				GPIO.output(ledport, GPIO.HIGH)
+				time.sleep(1)
+			elif (current_mode=="steam"):
+				GPIO.output(ledport, GPIO.HIGH)
+				time.sleep(.25)
+				GPIO.output(ledport, GPIO.LOW)
+				time.sleep(.25)
+			else:
+				GPIO.output(ledport, GPIO.LOW)
+	thread=threading.Thread(target=ledblink)
+	thread.start()
 #serve index page
 @app.route("/")
 def index():
@@ -109,23 +162,11 @@ def action():
 def action2(useshottimer):
 	global requested_mode
 	global usetimer
-	global elapsed
 	if (useshottimer=="false"):
 		usetimer=False
 	else:
 		usetimer=True
-	elapsed=0
 	requested_mode="shot"
-	#open pull count file and add pulls
-	with open("/root/espresso/pullcount.dat","r+") as orgf:
-		try:
-			currentcount=int(orgf.read())
-		except:
-			currentcount=0
-		finally:
-			orgf.seek(0)
-			orgf.write(str(currentcount+1))
-
 	return "0"
 
 #trigger steam mode
