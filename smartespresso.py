@@ -75,6 +75,8 @@ def shottimer():
 				elapsed+=.25
 			if (elapsed>shotseconds):
 				requested_mode="preheat"
+				#reset elapsed so preheat does not keep becoming requested mode
+				elapsed=0
 	thread=threading.Thread(target=run)
 	thread.start()
 	def switch():
