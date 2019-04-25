@@ -91,7 +91,7 @@ def shottimer():
 					int_state=GPIO.input(switchport)
 					if int_state==False:
 						requested_mode="off"
-						time.sleep(1)
+						time.sleep(2)
 				elif (current_mode=="shot"):
 					requested_mode="preheat"
 					time.sleep(2)
