@@ -101,6 +101,8 @@ def shottimer():
 				else:
 					requested_mode="off"
 					time.sleep(2)
+			#prevent CPU usage
+			time.sleep(.1)
 	thread=threading.Thread(target=switch)
 	thread.start()
 #flash led
@@ -120,6 +122,8 @@ def shottimer():
 				time.sleep(.25)
 			else:
 				GPIO.output(ledport, GPIO.LOW)
+			#prevent CPU usage
+			time.sleep(.1)
 	thread=threading.Thread(target=ledblink)
 	thread.start()
 #serve index page
