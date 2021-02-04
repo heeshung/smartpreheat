@@ -13,13 +13,13 @@ preheattime=10
 elapsed=0
 current_mode="off"
 requested_mode="off"
-laststatusreason="Preheater is off, controller was rebooted."
+laststatusreason="Preheater is off, controller was rebooted at "+str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))+"."
 
 loglocation="/root/pfcpreheat/log.dat"
 
 #script start log entry
 orgf=open(loglocation,"a+")
-orgf.write(str(datetime.datetime.now())+"  SCRIPT START")
+orgf.write(str(datetime.datetime.now())+"  SCRIPT START\n")
 orgf.close()
 
 # Set button and PIR sensor pins as an input
@@ -67,7 +67,7 @@ def heattimer():
 						current_mode=requested_mode
 						elapsed=0
 						orgf=open(loglocation,"a+")
-						orgf.write(+str(datetime.datetime.now())+"  START  "+glcissuer+"\n")
+						orgf.write(str(datetime.datetime.now())+"  START  "+glcissuer+"\n")
 						orgf.close()
 						laststatusreason="Preheater started at "+str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))+" by "+glcissuer+"."
 					elif (requested_mode=="timeroff"):
