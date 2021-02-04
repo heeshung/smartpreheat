@@ -1,1 +1,1 @@
-#SmartEspresso for Delonghi EC155 Espresso Machine
+#SmartPreheat for preheating PFC aircraft

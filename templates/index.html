@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <title>SmartEspresso by Mark</title>
+    <title>SmartPreheater</title>
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
@@ -23,33 +23,86 @@
     body{background-color: rgb(200, 200, 200);}
   </style>
   <body>
+
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true" data-keyboard="false" data-backdrop="static">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Preheater Authorization</h5>
+      </div>
+      <div class="modal-body">
+        <form class="needs-validation" id="displaynameform" novalidate>
+          <div class="form-group">
+            <label for="displayname">Your Name:</label>
+            <input type="text" class="form-control" id="displayname" placeholder="Enter Display Name" required>
+            <div class="invalid-feedback">Please input your name.</div>
+          </div>
+        </form>
+        <form class="needs-validation" id="pwdform" novalidate>
+          <div class="form-group">
+            <label for="pwd">Authorization Key:</label>
+            <input type="password" class="form-control" id="pwd" placeholder="Enter Auth Key" required>
+            <div class="invalid-feedback">Incorrect authorization key.</div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <h5><small><span id="loginstatus" class="text-danger"></span></small></h5>
+        <button type="submit" id="pwdsubmit" class="btn btn-primary">Submit</button>
+      </div>
+    </div>
+  </div>
+</div>
+
     <div id="control" class="container-fluid">
-      <h2 class="display-4">SmartEspresso</h2>
+      <h2 class="display-4">SmartPreheat</h2>
       <div style="margin-top:25px"></div>
         <div class="btn-group">
           <button type="button" id="start" class="btn btn-danger btn-block btn-lg">Loading...</button>
 	</div>
-	<div class="btn-group">
-	  <button type="button" id="steam" class="btn btn-danger btn-block btn-lg">Loading...</button>
-        </div>
     </div>
     <div class="container-fluid">
 	<div style="margin-top:25px"></div>
 	<!--<input id="ex7" type="text" data-slider-min="20" data-slider-max="30" data-slider-step="1" data-slider-value="25" data-slider-enabled="true"/>-->
-	<!--<input id="ex7-enabled" type="checkbox"/> Use Shot Timer-->
-	<div class="btn-group-toggle" data-toggle="buttons" id="togglearea">
-          <label class="btn btn-info active" id="togglelabel">
-	    <input type="checkbox" checked autocomplete="off" id="ex7-enabled"> Use Shot Timer
-	  </label>
+	<!--<input id="ex7-enabled" type="checkbox"/> Use Preheat Timer-->
 	</div>
 	<div style="margin-top:15px"></div>
-	<h5>Current Mode: <span id="pwrsts"></span><small><span id="shottime" style="padding-left:10px"></span></small></h5>
+	<h5 style="padding-left:10px">Status: <span id="pwrsts"></span>
+	<div style="margin-top:15px"></div>
+	<span id="preheattime" style="padding-left:10px"></span></h5>
     </div>
 
 
     <script>
 	function sleep (time) {
 	return new Promise((resolve) => setTimeout(resolve, time));
+	}
+
+	function validateform(submit) {
+		var dnameform = $("#displaynameform");
+		if (dnameform[0].checkValidity() === false) {
+			event.preventDefault();
+			event.stopPropagation();
+		}
+		dnameform.addClass('was-validated');
+		if (dnameform[0].checkValidity() === true){
+			login(submit);
+		}
+	}
+
+	function pagestart(){
+		$('#myModal').modal('show');
+	}
+
+	function login(submit){
+	$.post("/authenticate/"+submit, function(authresult){
+		if (authresult=="true"){
+			$('#myModal').modal('hide');
+		}
+		else {
+			$("#loginstatus").text("Incorrect authorization key.");
+		}
+		});
 	}
 
 	function checkstatus(){
@@ -61,60 +114,53 @@
 				$("#start").removeClass("btn-primary");
 				$("#start").removeClass("invisible");
                                 $("#start").addClass("btn-success");
-				$("#steam").text("Start Steam Wand");
-                                $("#steam").removeClass("btn-danger");
-                                $("#steam").addClass("btn-success");
-				$("#steam").removeClass("invisible");
-				$("#pwrsts").text("Off");
+				$.get("/laststatusreason", function(laststatusreason){
+					$("#pwrsts").text(laststatusreason);
+				}, 'text')
                         }
-                        else if (powersts=="preheat"){
-                                $("#start").text("Pull Shot/Purge");
+                        else {
+                                $("#start").text("Stop Preheat");
                                 $("#start").removeClass("btn-success");
-				$("#start").removeClass("btn-danger");
+				$("#start").addClass("btn-danger");
 				$("#start").removeClass("btn-warning");
-                                $("#start").addClass("btn-primary");
-				$("#steam").text("Stop");
-				$("#steam").removeClass("btn-success");
-                                $("#steam").addClass("btn-danger");
-				$("#pwrsts").text("Preheating");
+                                $("#start").removeClass("btn-primary");
+				$.get("/laststatusreason", function(laststatusreason){
+                                        $("#pwrsts").text(laststatusreason);
+                                }, 'text')
                         }
-			else if (powersts=="shot"){
-				$("#start").text("Preheat");
-				$("#start").removeClass("btn-primary");
-				$("#start").removeClass("btn-danger");
-				$("#start").removeClass("btn-success");
-				$("#start").addClass("btn-warning");
-				$("#steam").text("Done");
-				$("#pwrsts").text("Pulling Shot");
-			}
-			else if (powersts=="steam"){
-				$("#start").addClass("invisible");
-				$("#steam").text("Stop");
-				$("#steam").removeClass("btn-success");
-				$("#steam").addClass("btn-danger");
-				$("#pwrsts").text("Steaming");
-			}
-                }, 'html');
+		}, 'html');
 
 		$.get("/secleft", function(secleft){
-			$("#shottime").text(secleft);
+			$("#preheattime").text(secleft);
 		}, 'text');	
 	}
 	
 	$(function(){
+		pagestart();
 		checkstatus();
 	});
 
 	setInterval(checkstatus,500);
+	
+	$('#pwdsubmit').click(function(){
+		var submit = $('#pwd').val();
+		window.lcissuer=$('#displayname').val();
+		validateform(submit);
+	});
 
-	//$('#ex7-enabled').click(function(){
-	//	if (this.checked){
-	//		$("#ex7").slider("enable");
-	//	}
-	//	else{
-	//		$("#ex7").slider("disable");
-	//	}
-	//});
+	$('#displaynameform').submit(function(){
+		event.preventDefault();
+		var submit = $('#pwd').val();
+		window.lcissuer=$('#displayname').val();
+		validateform(submit);
+	});
+
+	$('#pwdform').submit(function(){
+		event.preventDefault();
+		var submit = $('#pwd').val();
+		window.lcissuer=$('#displayname').val();
+		validateform(submit);
+	});
 
 	$('#togglelabel').click(function(){
 		if ($("#togglelabel").hasClass("btn-info")){
@@ -130,25 +176,13 @@
 	$('#start').click(function(){
 		$.get("/powersts", function(powersts){
 			if (powersts=="off"){
-				$.post("/preheat");
+				$.post("/preheat/"+window.lcissuer);
 				sleep(500).then(() => {
     					checkstatus();
 				})
 			}
-			else if (powersts=="preheat"){
-				//var val=$("#ex7").slider();
-				if ($('#ex7-enabled').prop('checked')==true){
-					$.post("/shot/true");
-				}
-				else{
-					$.post("/shot/false");
-				}
-				sleep(500).then(() => {
-                                        checkstatus();
-                                })
-			}
-			else if (powersts=="shot"){
-				$.post("/preheat");
+			else {
+				$.post("/off/"+window.lcissuer);
 				sleep(500).then(() => {
                                         checkstatus();
                                 })
@@ -156,24 +190,6 @@
 		}, 'html');
 	});
 
-        $('#steam').click(function(){
-                $.get("/powersts", function(powersts){
-                        if (powersts=="off"){
-                                $.post("/steam");
-                                sleep(500).then(() => {
-                                        checkstatus();
-                                })
-                        }
-                        else {
-                                $.post("/off");
-                                sleep(500).then(() => {
-                                        checkstatus();
-                                })
-                        }
-                }, 'html');
-        });
-
-		
     </script>
   </body>
 </html>
