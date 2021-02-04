@@ -9,11 +9,11 @@ preheatport = 18
 ledport=25
 switchport=17
 
-preheattime=1800
+preheattime=10
 elapsed=0
 current_mode="off"
 requested_mode="off"
-laststatusreason="Preheater is off, device was rebooted."
+laststatusreason="Preheater is off, controller was rebooted."
 
 # Set button and PIR sensor pins as an input
 GPIO.setup(preheatport, GPIO.OUT)
@@ -35,24 +35,25 @@ def heattimer():
 		while 1:
 			#see if preheat is requested by GSM module
 			input_state=GPIO.input(switchport)
-			if (input_state==False):
-				if (current_mode!="preheat" or current_mode!="GSMpreheat"):
+			if (input_state==False and current_mode!="preheat"):
+				if (current_mode!="GSMpreheat"):
 					orgf=open("/root/pfcpreheat/log.dat","a+")
-					orgf.write("Preheater started at "+str(datetime.datetime.now())+" by the GSM module.\n")
+					orgf.write("Preheater started at "+str(datetime.datetime.now())+" by the SMS module.\n")
 					orgf.close()
-					laststatusreason="Preheater started at "+str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))+" by the GSM module."
+					laststatusreason="Preheater started at "+str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))+" by the SMS module.  Text SMS module to stop preheating."
 					GPIO.output(preheatport, GPIO.LOW)
-					current_mode="GSMpreheat"
-					elapsed=0
+					requested_mode="GSMpreheat"
+					current_mode=requested_mode
 			else:
 				#stop preheat if GSM module turned it on
 				if (current_mode=="GSMpreheat"):
 					GPIO.output(preheatport, GPIO.HIGH)
-					current_mode="off"
+					requested_mode="off"
+					current_mode=requested_mode
 					orgf=open("/root/pfcpreheat/log.dat","a+")
-					orgf.write("Preheater stopped at "+str(datetime.datetime.now())+" by GSM module.\n")
+					orgf.write("Preheater stopped at "+str(datetime.datetime.now())+" by SMS module.\n")
 					orgf.close()
-					laststatusreason="Preheater stopped at "+str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))+" by the GSM module."
+					laststatusreason="Preheater stopped at "+str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))+" by the SMS module."
 				if (current_mode!=requested_mode):
 					if (requested_mode=="preheat"):
 					        GPIO.output(preheatport, GPIO.LOW)
@@ -76,9 +77,9 @@ def heattimer():
 						orgf.write("Preheater stopped at "+str(datetime.datetime.now())+" by "+glcissuer+".\n")
 						orgf.close()
 						laststatusreason="Preheater stopped at "+str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))+" by "+glcissuer+"."
-			time.sleep(.5)
-			if (current_mode=="preheat" or current_mode=="GSMpreheat"):
-				elapsed+=.5
+			time.sleep(1.5)
+			if (current_mode=="preheat"):
+				elapsed+=1.5
 			if (elapsed>preheattime):
 				requested_mode="timeroff"
 				#reset elapsed so preheat does not keep becoming requested mode
@@ -134,11 +135,12 @@ def valid_password(password):
 @app.route("/powersts", methods=['GET'])
 def info():
 
-	preheatsts = str(GPIO.input(preheatport))
-	if (preheatsts=="0"):
-		return "preheat"
-	else:
-		return "off"
+	#preheatsts = str(GPIO.input(preheatport))
+	#if (preheatsts=="0"):
+	#	return "preheat"
+	#else:
+	#	return "off"
+	return current_mode
 
 #get seconds left
 @app.route("/secleft", methods=['GET'])

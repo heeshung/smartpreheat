@@ -107,7 +107,7 @@
 
 	function checkstatus(){
 		$.get("/powersts", function(powersts){
-                        if (powersts=="off"){
+                        if (powersts=="off" || powersts=="timeroff"){
                                 $("#start").text("Start Preheat");
                                 $("#start").removeClass("btn-danger");
 				$("#start").removeClass("btn-warning");
@@ -118,6 +118,19 @@
 					$("#pwrsts").text(laststatusreason);
 				}, 'text')
                         }
+
+
+			else if (powersts=="GSMpreheat"){
+				$("#start").text("Preheating via SMS");
+                                $("#start").removeClass("btn-success");
+                                $("#start").removeClass("btn-danger");
+                                $("#start").addClass("btn-warning");
+                                $("#start").removeClass("btn-primary");
+                                $.get("/laststatusreason", function(laststatusreason){
+                                        $("#pwrsts").text(laststatusreason);
+                                }, 'text')
+                        }
+
                         else {
                                 $("#start").text("Stop Preheat");
                                 $("#start").removeClass("btn-success");
@@ -140,7 +153,7 @@
 		checkstatus();
 	});
 
-	setInterval(checkstatus,500);
+	setInterval(checkstatus,1500);
 	
 	$('#pwdsubmit').click(function(){
 		var submit = $('#pwd').val();
@@ -175,7 +188,7 @@
 
 	$('#start').click(function(){
 		$.get("/powersts", function(powersts){
-			if (powersts=="off"){
+			if (powersts=="off" || powersts=="timeroff"){
 				$.post("/preheat/"+window.lcissuer);
 				sleep(500).then(() => {
     					checkstatus();
