@@ -15,6 +15,13 @@ current_mode="off"
 requested_mode="off"
 laststatusreason="Preheater is off, controller was rebooted."
 
+loglocation="/root/pfcpreheat/log.dat"
+
+#script start log entry
+orgf=open(loglocation,"a+")
+orgf.write(str(datetime.datetime.now())+"  SCRIPT START")
+orgf.close()
+
 # Set button and PIR sensor pins as an input
 GPIO.setup(preheatport, GPIO.OUT)
 GPIO.setup(ledport, GPIO.OUT)
@@ -37,8 +44,8 @@ def heattimer():
 			input_state=GPIO.input(switchport)
 			if (input_state==False and current_mode!="preheat"):
 				if (current_mode!="GSMpreheat"):
-					orgf=open("/root/pfcpreheat/log.dat","a+")
-					orgf.write("Preheater started at "+str(datetime.datetime.now())+" by the SMS module.\n")
+					orgf=open(loglocation,"a+")
+					orgf.write(str(datetime.datetime.now())+"  START  SMS Module\n")
 					orgf.close()
 					laststatusreason="Preheater started at "+str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))+" by the SMS module.  Text SMS module to stop preheating."
 					GPIO.output(preheatport, GPIO.LOW)
@@ -50,8 +57,8 @@ def heattimer():
 					GPIO.output(preheatport, GPIO.HIGH)
 					requested_mode="off"
 					current_mode=requested_mode
-					orgf=open("/root/pfcpreheat/log.dat","a+")
-					orgf.write("Preheater stopped at "+str(datetime.datetime.now())+" by SMS module.\n")
+					orgf=open(loglocation,"a+")
+					orgf.write(str(datetime.datetime.now())+"  STOP   SMS Module\n")
 					orgf.close()
 					laststatusreason="Preheater stopped at "+str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))+" by the SMS module."
 				if (current_mode!=requested_mode):
@@ -59,22 +66,22 @@ def heattimer():
 					        GPIO.output(preheatport, GPIO.LOW)
 						current_mode=requested_mode
 						elapsed=0
-						orgf=open("/root/pfcpreheat/log.dat","a+")
-						orgf.write("Preheater started at "+str(datetime.datetime.now())+" by "+glcissuer+".\n")
+						orgf=open(loglocation,"a+")
+						orgf.write(+str(datetime.datetime.now())+"  START  "+glcissuer+"\n")
 						orgf.close()
 						laststatusreason="Preheater started at "+str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))+" by "+glcissuer+"."
 					elif (requested_mode=="timeroff"):
                                                 GPIO.output(preheatport, GPIO.HIGH)
 						current_mode=requested_mode
-						orgf=open("/root/pfcpreheat/log.dat","a+")
-                                                orgf.write("Preheater stopped at "+str(datetime.datetime.now())+" by the timer.\n")
+						orgf=open(loglocation,"a+")
+                                                orgf.write(str(datetime.datetime.now())+"  STOP   TIMER\n")
                                                 orgf.close()
 						laststatusreason="Preheater stopped at "+str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))+" by the timer."
 					else:
 					        GPIO.output(preheatport, GPIO.HIGH)
 						current_mode="off"
-						orgf=open("/root/pfcpreheat/log.dat","a+")
-						orgf.write("Preheater stopped at "+str(datetime.datetime.now())+" by "+glcissuer+".\n")
+						orgf=open(loglocation,"a+")
+						orgf.write(str(datetime.datetime.now())+"  STOP   "+glcissuer+"\n")
 						orgf.close()
 						laststatusreason="Preheater stopped at "+str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))+" by "+glcissuer+"."
 			time.sleep(1.5)
