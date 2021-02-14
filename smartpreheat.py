@@ -9,7 +9,7 @@ preheatport = 18
 ledport=25
 switchport=17
 
-preheattime=10
+preheattime=1800
 elapsed=0
 current_mode="off"
 requested_mode="off"
