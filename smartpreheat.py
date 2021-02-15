@@ -9,11 +9,11 @@ preheatport = 18
 ledport=25
 switchport=17
 
-preheattime=1800
+preheattime=7200
 elapsed=0
 current_mode="off"
 requested_mode="off"
-laststatusreason="PREHEATER OFF - Controller was rebooted at "+str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))+"."
+laststatusreason="PREHEATER OFF - controller was rebooted at "+str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))+"."
 
 loglocation="/root/pfcpreheat/log.dat"
 
