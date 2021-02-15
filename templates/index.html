@@ -157,6 +157,7 @@
 	
 	$('#pwdsubmit').click(function(){
 		var submit = $('#pwd').val();
+		window.password=$('#pwd').val();
 		window.lcissuer=$('#displayname').val();
 		validateform(submit);
 	});
@@ -164,6 +165,7 @@
 	$('#displaynameform').submit(function(){
 		event.preventDefault();
 		var submit = $('#pwd').val();
+                window.password=$('#pwd').val();
 		window.lcissuer=$('#displayname').val();
 		validateform(submit);
 	});
@@ -171,6 +173,7 @@
 	$('#pwdform').submit(function(){
 		event.preventDefault();
 		var submit = $('#pwd').val();
+                window.password=$('#pwd').val();
 		window.lcissuer=$('#displayname').val();
 		validateform(submit);
 	});
@@ -189,13 +192,13 @@
 	$('#start').click(function(){
 		$.get("/powersts", function(powersts){
 			if (powersts=="off" || powersts=="timeroff"){
-				$.post("/preheat/"+window.lcissuer);
+				$.post("/preheat/"+window.lcissuer+"/"+window.password);
 				sleep(500).then(() => {
     					checkstatus();
 				})
 			}
 			else {
-				$.post("/off/"+window.lcissuer);
+				$.post("/off/"+window.lcissuer+"/"+window.password);
 				sleep(500).then(() => {
                                         checkstatus();
                                 })

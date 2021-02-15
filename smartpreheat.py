@@ -17,6 +17,9 @@ laststatusreason="PREHEATER OFF - controller was rebooted at "+str(datetime.date
 
 loglocation="/root/pfcpreheat/log.dat"
 
+#pw hash
+userhash="534e34d7dd9100307f970d2d00f0880f91ebcd6d7b825ccf00e3338b6d7eb83e"
+
 #script start log entry
 orgf=open(loglocation,"a+")
 orgf.write(str(datetime.datetime.now())+"  SCRIPT START\n")
@@ -131,7 +134,6 @@ def index():
 #authentication
 @app.route("/authenticate/<password>", methods=['POST'])
 def valid_password(password):
-	userhash="534e34d7dd9100307f970d2d00f0880f91ebcd6d7b825ccf00e3338b6d7eb83e"
 	pw_hash=hashlib.sha256(password).hexdigest()
 	if (userhash == pw_hash):
 		return "true"
@@ -164,22 +166,30 @@ def info3():
 	return laststatusreason
 
 #trigger preheat mode
-@app.route("/preheat/<lcissuer>", methods=['POST'])
-def action(lcissuer):
+@app.route("/preheat/<lcissuer>/<password>", methods=['POST'])
+def action(lcissuer,password):
 	global requested_mode
 	global glcissuer
-	requested_mode="preheat"
-	glcissuer=lcissuer
-	return "0"
+	pw_hash=hashlib.sha256(password).hexdigest()
+	if (userhash == pw_hash):
+		requested_mode="preheat"
+		glcissuer=lcissuer
+		return "0"
+	else:
+		return "1"
 
 #turn off
-@app.route("/off/<lcissuer>", methods=['POST'])
-def action2(lcissuer):
+@app.route("/off/<lcissuer>/<password>", methods=['POST'])
+def action2(lcissuer,password):
 	global requested_mode
 	global glcissuer
-	requested_mode="off"
-	glcissuer=lcissuer
-	return "0"
+        pw_hash=hashlib.sha256(password).hexdigest()
+        if (userhash == pw_hash):
+		requested_mode="off"
+		glcissuer=lcissuer
+		return "0"
+	else:
+		return "1"
 
 if __name__ == "__main__":
 	app.run(host='0.0.0.0', port=80, debug=False, threaded=True)
